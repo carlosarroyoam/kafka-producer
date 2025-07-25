@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageService {
   private static final Logger log = LoggerFactory.getLogger(MessageService.class);
-  private static final String TOPIC_NAME = "com.carlosarroyoam.kafka.messages";
-  private final KafkaTemplate<String, Message> kafkaTemplate;
+  private static final String MESSAGES_TOPIC_NAME = "com.carlosarroyoam.kafka.messages";
+  private final KafkaTemplate<String, Object> kafkaTemplate;
 
-  public MessageService(KafkaTemplate<String, Message> kafkaTemplate) {
+  public MessageService(KafkaTemplate<String, Object> kafkaTemplate) {
     this.kafkaTemplate = kafkaTemplate;
   }
 
   public void send(Message message) {
-    kafkaTemplate.send(TOPIC_NAME, message);
-    log.info("Message send to Kafka topic : {}, Object: {}", TOPIC_NAME, message);
+    kafkaTemplate.send(MESSAGES_TOPIC_NAME, message);
+    log.info("Message send to Kafka topic : {}, Object: {}", MESSAGES_TOPIC_NAME, message);
   }
 }

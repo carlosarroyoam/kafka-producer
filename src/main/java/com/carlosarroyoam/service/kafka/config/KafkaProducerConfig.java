@@ -1,6 +1,5 @@
 package com.carlosarroyoam.service.kafka.config;
 
-import com.carlosarroyoam.service.kafka.messages.Message;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -21,7 +20,7 @@ public class KafkaProducerConfig {
   private String bootstrapAddress;
 
   @Bean
-  ProducerFactory<String, Message> producerFactory() {
+  ProducerFactory<String, Object> producerFactory() {
     Map<String, Object> configProps = new HashMap<>();
     configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
     configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -31,12 +30,12 @@ public class KafkaProducerConfig {
   }
 
   @Bean
-  KafkaTemplate<String, Message> kafkaTemplate() {
+  KafkaTemplate<String, Object> kafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 
   @Bean
-  NewTopic taskTopic() {
+  NewTopic messagesTopic() {
     return TopicBuilder.name("com.carlosarroyoam.kafka.messages").partitions(1).replicas(1).build();
   }
 }

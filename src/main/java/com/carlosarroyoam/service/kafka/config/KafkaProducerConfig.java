@@ -16,6 +16,8 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
 public class KafkaProducerConfig {
+  public static final String MESSAGES_TOPIC_NAME = "com.carlosarroyoam.kafka.messages";
+
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapAddress;
 
@@ -36,6 +38,6 @@ public class KafkaProducerConfig {
 
   @Bean
   NewTopic messagesTopic() {
-    return TopicBuilder.name("com.carlosarroyoam.kafka.messages").partitions(1).replicas(1).build();
+    return TopicBuilder.name(MESSAGES_TOPIC_NAME).partitions(1).replicas(1).build();
   }
 }

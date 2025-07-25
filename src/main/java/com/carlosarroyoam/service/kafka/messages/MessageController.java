@@ -18,10 +18,9 @@ public class MessageController {
   }
 
   @PostMapping(consumes = "application/json")
-  public ResponseEntity<Boolean> create(@RequestBody Message message,
-      UriComponentsBuilder builder) {
+  public ResponseEntity<Void> create(@RequestBody Message message, UriComponentsBuilder builder) {
     messageService.send(message);
-    UriComponents uriComponents = builder.path("/messages/{userId}")
+    UriComponents uriComponents = builder.path("/messages/{messageId}")
         .buildAndExpand(message.getId());
     return ResponseEntity.created(uriComponents.toUri()).build();
   }

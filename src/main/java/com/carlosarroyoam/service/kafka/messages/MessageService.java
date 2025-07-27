@@ -5,7 +5,11 @@ import com.carlosarroyoam.service.kafka.messages.dto.CreateMessageRequestDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto.MessageDtoMapper;
 import com.carlosarroyoam.service.kafka.messages.entity.Message;
-import com.carlosarroyoam.service.kafka.messages.event.MessageSentEvent;
+import com.carlosarroyoam.service.kafka.messages.event.MessageCreatedEvent;
+import com.carlosarroyoam.service.kafka.outbox.OutboxEventRepository;
+import com.carlosarroyoam.service.kafka.outbox.entity.OutboxEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,20 +19,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class MessageService {
   private static final Logger log = LoggerFactory.getLogger(MessageService.class);
-  private final KafkaTemplate<String, Object> kafkaTemplate;
   private final MessageRepository messageRepository;
+  private final OutboxEventRepository outboxRepository;
+  private final ObjectMapper mapper;
 
-  public MessageService(KafkaTemplate<String, Object> kafkaTemplate,
-      MessageRepository messageRepository) {
-    this.kafkaTemplate = kafkaTemplate;
+  public MessageService(MessageRepository messageRepository, OutboxEventRepository outboxRepository,
+      ObjectMapper mapper) {
     this.messageRepository = messageRepository;
+    this.outboxRepository = outboxRepository;
+    this.mapper = mapper;
   }
 
   public List<MessageDto> findAll(Integer page, Integer size) {
@@ -45,22 +50,28 @@ public class MessageService {
   }
 
   @Transactional
-  public MessageDto send(CreateMessageRequestDto request) {
+  public MessageDto send(CreateMessageRequestDto request) throws JsonProcessingException {
     LocalDateTime now = LocalDateTime.now();
     Message message = MessageDtoMapper.INSTANCE.createRequestToEntity(request);
     message.setCreatedAt(now);
     message.setUpdatedAt(now);
     messageRepository.save(message);
 
-    MessageSentEvent messageSentEvent = MessageSentEvent.builder()
+    MessageCreatedEvent messageSentEvent = MessageCreatedEvent.builder()
         .id(message.getId())
         .content(message.getContent())
         .build();
-    kafkaTemplate.send(KafkaProducerConfig.MESSAGES_TOPIC_NAME, messageSentEvent);
 
-    log.info("Message sent to Kafka topic : {}, Object: {}",
-        KafkaProducerConfig.MESSAGES_TOPIC_NAME, request);
+    OutboxEvent event = new OutboxEvent();
+    event.setAggregateType(Message.class.getSimpleName());
+    event.setAggregateId(message.getId().toString());
+    event.setEventType(MessageCreatedEvent.class.getSimpleName());
+    event.setPayload(mapper.writeValueAsString(messageSentEvent));
+    event.setTopic(KafkaProducerConfig.MESSAGES_TOPIC_NAME);
+    event.setCreatedAt(now);
+    outboxRepository.save(event);
 
+    log.info("Message created: {}", message);
     return MessageDtoMapper.INSTANCE.toDto(message);
   }
 }

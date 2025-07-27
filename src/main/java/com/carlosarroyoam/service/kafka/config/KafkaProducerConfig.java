@@ -16,7 +16,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
 public class KafkaProducerConfig {
-  public static final String MESSAGES_TOPIC_NAME = "com.carlosarroyoam.kafka.messages";
+  public static final String MESSAGES_TOPIC_NAME = "com.carlosarroyoam.kafka.messages.created";
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapAddress;

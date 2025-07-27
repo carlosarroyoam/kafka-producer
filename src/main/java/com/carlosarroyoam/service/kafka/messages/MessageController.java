@@ -2,6 +2,7 @@ package com.carlosarroyoam.service.kafka.messages;
 
 import com.carlosarroyoam.service.kafka.messages.dto.CreateMessageRequestDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,7 @@ public class MessageController {
 
   @PostMapping(consumes = "application/json")
   public ResponseEntity<Void> create(@RequestBody CreateMessageRequestDto request,
-      UriComponentsBuilder builder) {
+      UriComponentsBuilder builder) throws JsonProcessingException {
     MessageDto messageDto = messageService.send(request);
     UriComponents uriComponents = builder.path("/messages/{messageId}")
         .buildAndExpand(messageDto.getId());

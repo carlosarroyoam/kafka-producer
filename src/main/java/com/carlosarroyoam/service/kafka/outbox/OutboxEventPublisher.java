@@ -5,6 +5,7 @@ import com.carlosarroyoam.service.kafka.outbox.entity.OutboxEvent;
 import com.carlosarroyoam.service.kafka.outbox.entity.OutboxEvent.Status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OutboxEventPublisher {
   private static final Logger log = LoggerFactory.getLogger(OutboxEventPublisher.class);
+  private static final int MAX_RETRIES = 3;
   private final KafkaTemplate<String, Object> kafkaTemplate;
   private final OutboxEventRepository outboxRepository;
   private final ObjectMapper mapper;
@@ -27,21 +29,51 @@ public class OutboxEventPublisher {
     this.mapper = mapper;
   }
 
-  @Scheduled(fixedRate = 3000)
+  @Scheduled(fixedRate = 1000)
+  @Transactional
   public void publishEvents() {
     List<OutboxEvent> events = outboxRepository
-        .findTop10ByDeliveredAtNullAndStatusOrderByCreatedAtAsc(Status.PENDING);
+        .findTop10ByPublishedAtNullAndStatusOrderByCreatedAtAsc(Status.PENDING);
 
     for (OutboxEvent event : events) {
       try {
         kafkaTemplate.send(event.getTopic(), event.getAggregateId(), payloadToObject(event));
-        event.setDeliveredAt(LocalDateTime.now());
         event.setStatus(Status.PUBLISHED);
+        event.setPublishedAt(LocalDateTime.now());
         log.info("Event published: {}, topic: {}, payload: {}", event.getId(), event.getTopic(),
             event.getPayload());
       } catch (RuntimeException | JsonProcessingException ex) {
         event.setStatus(Status.FAILED);
-        event.setError(ex.getMessage());
+        event.setError(ex.getMessage() != null ? ex.getMessage() : "Unknown error");
+        event.setRetries(event.getRetries() + 1);
+        log.error("Failed to publish event: {}, error: {}", event.getId(), ex.getMessage());
+      }
+
+      outboxRepository.save(event);
+    }
+  }
+
+  @Scheduled(fixedRate = 15000)
+  @Transactional
+  public void retryFailedEvents() {
+    List<OutboxEvent> failedEvents = outboxRepository
+        .findTop10ByPublishedAtNullAndStatusAndRetriesLessThanEqualOrderByCreatedAtAsc(
+            Status.FAILED, MAX_RETRIES);
+
+    for (OutboxEvent event : failedEvents) {
+      log.info("Retrying failed event: {}, retries: {}", event.getId(), event.getRetries());
+
+      try {
+        kafkaTemplate.send(event.getTopic(), event.getAggregateId(), payloadToObject(event));
+        event.setStatus(Status.PUBLISHED);
+        event.setError(null);
+        event.setPublishedAt(LocalDateTime.now());
+        log.info("Event published: {}, topic: {}, payload: {}", event.getId(), event.getTopic(),
+            event.getPayload());
+      } catch (RuntimeException | JsonProcessingException ex) {
+        event.setStatus(Status.FAILED);
+        event.setError(ex.getMessage() != null ? ex.getMessage() : "Unknown error");
+        event.setRetries(event.getRetries() + 1);
         log.error("Failed to publish event: {}, error: {}", event.getId(), ex.getMessage());
       }
 

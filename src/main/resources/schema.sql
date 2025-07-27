@@ -12,8 +12,9 @@ CREATE TABLE outbox (
   event_type VARCHAR(32) NOT NULL,
   payload VARCHAR(1024) NOT NULL,
   topic VARCHAR(254) NOT NULL,
-  status VARCHAR(20) DEFAULT 'PENDING',
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   error VARCHAR(1014),
+  retries INT NOT NULL DEFAULT '0',
   created_at TIMESTAMP NOT NULL,
-  delivered_at TIMESTAMP
+  published_at TIMESTAMP
 );

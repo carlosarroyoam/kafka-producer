@@ -31,7 +31,7 @@ public class OutboxEvent {
   @Column(name = "aggregate_id", length = 32)
   private String aggregateId;
 
-  @Column(name = "event_type", length = 32)
+  @Column(name = "event_type", length = 32, nullable = false)
   private String eventType;
 
   @Column(name = "payload", length = 1024, nullable = false)
@@ -47,11 +47,15 @@ public class OutboxEvent {
   @Column(name = "error", length = 1024)
   private String error;
 
+  @Column(name = "retries", nullable = false)
+  @Builder.Default
+  private Integer retries = 0;
+
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "delivered_at")
-  private LocalDateTime deliveredAt;
+  @Column(name = "published_at")
+  private LocalDateTime publishedAt;
 
   public enum Status {
     PENDING, PUBLISHED, FAILED

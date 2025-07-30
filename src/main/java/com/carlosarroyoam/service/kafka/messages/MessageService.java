@@ -67,7 +67,7 @@ public class MessageService {
     event.setAggregateId(message.getId().toString());
     event.setEventType(MessageCreatedEvent.class.getSimpleName());
     event.setPayload(mapper.writeValueAsString(messageSentEvent));
-    event.setTopic(KafkaProducerConfig.MESSAGES_TOPIC_NAME);
+    event.setTopic(KafkaProducerConfig.MESSAGES_CREATED_TOPIC_NAME);
     event.setCreatedAt(now);
     outboxRepository.save(event);
 

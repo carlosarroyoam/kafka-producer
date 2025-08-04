@@ -1,6 +1,6 @@
 package com.carlosarroyoam.service.kafka.messages;
 
-import com.carlosarroyoam.service.kafka.config.KafkaProducerConfig;
+import com.carlosarroyoam.service.kafka.core.config.KafkaProducerConfig;
 import com.carlosarroyoam.service.kafka.messages.dto.CreateMessageRequestDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto.MessageDtoMapper;

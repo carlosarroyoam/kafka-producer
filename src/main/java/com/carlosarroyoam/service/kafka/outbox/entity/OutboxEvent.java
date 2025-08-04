@@ -42,7 +42,7 @@ public class OutboxEvent {
 
   @Enumerated(EnumType.STRING)
   @Builder.Default
-  private Status status = Status.PENDING;
+  private OutboxEventStatus status = OutboxEventStatus.PENDING;
 
   @Column(name = "error", length = 1024)
   private String error;
@@ -56,8 +56,4 @@ public class OutboxEvent {
 
   @Column(name = "published_at")
   private LocalDateTime publishedAt;
-
-  public enum Status {
-    PENDING, PUBLISHED, FAILED
-  }
 }

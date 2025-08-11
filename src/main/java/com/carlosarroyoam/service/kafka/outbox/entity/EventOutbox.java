@@ -15,12 +15,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "outbox")
+@Table(name = "events_outbox")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OutboxEvent {
+public class EventOutbox {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -42,7 +42,7 @@ public class OutboxEvent {
 
   @Enumerated(EnumType.STRING)
   @Builder.Default
-  private OutboxEventStatus status = OutboxEventStatus.PENDING;
+  private EventOutboxStatus status = EventOutboxStatus.PENDING;
 
   @Column(name = "error", length = 1024)
   private String error;

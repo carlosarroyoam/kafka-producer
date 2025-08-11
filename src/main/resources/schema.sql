@@ -5,7 +5,7 @@ CREATE TABLE messages (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE outbox (
+CREATE TABLE events_outbox (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   aggregate_type VARCHAR(32) NOT NULL,
   aggregate_id VARCHAR(32),

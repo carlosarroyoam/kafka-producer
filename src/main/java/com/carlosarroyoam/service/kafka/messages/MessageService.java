@@ -6,8 +6,8 @@ import com.carlosarroyoam.service.kafka.messages.dto.MessageDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto.MessageDtoMapper;
 import com.carlosarroyoam.service.kafka.messages.entity.Message;
 import com.carlosarroyoam.service.kafka.messages.event.MessageCreatedEvent;
-import com.carlosarroyoam.service.kafka.outbox.OutboxEventRepository;
-import com.carlosarroyoam.service.kafka.outbox.entity.OutboxEvent;
+import com.carlosarroyoam.service.kafka.outbox.EventOutboxRepository;
+import com.carlosarroyoam.service.kafka.outbox.entity.EventOutbox;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -26,10 +26,10 @@ import org.springframework.web.server.ResponseStatusException;
 public class MessageService {
   private static final Logger log = LoggerFactory.getLogger(MessageService.class);
   private final MessageRepository messageRepository;
-  private final OutboxEventRepository outboxRepository;
+  private final EventOutboxRepository outboxRepository;
   private final ObjectMapper mapper;
 
-  public MessageService(MessageRepository messageRepository, OutboxEventRepository outboxRepository,
+  public MessageService(MessageRepository messageRepository, EventOutboxRepository outboxRepository,
       ObjectMapper mapper) {
     this.messageRepository = messageRepository;
     this.outboxRepository = outboxRepository;
@@ -62,14 +62,14 @@ public class MessageService {
         .content(message.getContent())
         .build();
 
-    OutboxEvent event = new OutboxEvent();
-    event.setAggregateType(Message.class.getSimpleName());
-    event.setAggregateId(message.getId().toString());
-    event.setEventType(MessageCreatedEvent.class.getSimpleName());
-    event.setPayload(mapper.writeValueAsString(messageSentEvent));
-    event.setTopic(KafkaProducerConfig.MESSAGES_CREATED_TOPIC_NAME);
-    event.setCreatedAt(now);
-    outboxRepository.save(event);
+    EventOutbox eventOutbox = new EventOutbox();
+    eventOutbox.setAggregateType(Message.class.getSimpleName());
+    eventOutbox.setAggregateId(message.getId().toString());
+    eventOutbox.setEventType(MessageCreatedEvent.class.getSimpleName());
+    eventOutbox.setPayload(mapper.writeValueAsString(messageSentEvent));
+    eventOutbox.setTopic(KafkaProducerConfig.MESSAGES_CREATED_TOPIC_NAME);
+    eventOutbox.setCreatedAt(now);
+    outboxRepository.save(eventOutbox);
 
     log.info("Message created: {}", message);
     return MessageDtoMapper.INSTANCE.toDto(message);

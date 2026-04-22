@@ -22,8 +22,10 @@ public class EventOutboxPublisher {
   private final EventOutboxRepository outboxRepository;
   private final ObjectMapper mapper;
 
-  public EventOutboxPublisher(KafkaTemplate<String, Object> kafkaTemplate,
-      EventOutboxRepository outboxRepository, ObjectMapper mapper) {
+  public EventOutboxPublisher(
+      KafkaTemplate<String, Object> kafkaTemplate,
+      EventOutboxRepository outboxRepository,
+      ObjectMapper mapper) {
     this.kafkaTemplate = kafkaTemplate;
     this.outboxRepository = outboxRepository;
     this.mapper = mapper;
@@ -32,15 +34,19 @@ public class EventOutboxPublisher {
   @Scheduled(fixedRate = 1000)
   @Transactional
   public void publishEvents() {
-    List<EventOutbox> events = outboxRepository
-        .findTop10ByPublishedAtNullAndStatusOrderByCreatedAtAsc(EventOutboxStatus.PENDING);
+    List<EventOutbox> events =
+        outboxRepository.findTop10ByPublishedAtNullAndStatusOrderByCreatedAtAsc(
+            EventOutboxStatus.PENDING);
 
     for (EventOutbox event : events) {
       try {
         kafkaTemplate.send(event.getTopic(), event.getAggregateId(), payloadToObject(event));
         event.setStatus(EventOutboxStatus.PUBLISHED);
         event.setPublishedAt(LocalDateTime.now());
-        log.info("Event published: {}, topic: {}, payload: {}", event.getId(), event.getTopic(),
+        log.info(
+            "Event published: {}, topic: {}, payload: {}",
+            event.getId(),
+            event.getTopic(),
             event.getPayload());
       } catch (RuntimeException | JsonProcessingException ex) {
         event.setStatus(EventOutboxStatus.FAILED);
@@ -56,9 +62,10 @@ public class EventOutboxPublisher {
   @Scheduled(fixedRate = 15000)
   @Transactional
   public void retryFailedEvents() {
-    List<EventOutbox> failedEvents = outboxRepository
-        .findTop10ByPublishedAtNullAndStatusAndRetriesLessThanEqualOrderByCreatedAtAsc(
-            EventOutboxStatus.FAILED, MAX_RETRIES);
+    List<EventOutbox> failedEvents =
+        outboxRepository
+            .findTop10ByPublishedAtNullAndStatusAndRetriesLessThanEqualOrderByCreatedAtAsc(
+                EventOutboxStatus.FAILED, MAX_RETRIES);
 
     for (EventOutbox event : failedEvents) {
       log.info("Retrying failed event: {}, retries: {}", event.getId(), event.getRetries());
@@ -68,7 +75,10 @@ public class EventOutboxPublisher {
         event.setStatus(EventOutboxStatus.PUBLISHED);
         event.setError(null);
         event.setPublishedAt(LocalDateTime.now());
-        log.info("Event published: {}, topic: {}, payload: {}", event.getId(), event.getTopic(),
+        log.info(
+            "Event published: {}, topic: {}, payload: {}",
+            event.getId(),
+            event.getTopic(),
             event.getPayload());
       } catch (RuntimeException | JsonProcessingException ex) {
         event.setStatus(EventOutboxStatus.FAILED);
@@ -83,9 +93,9 @@ public class EventOutboxPublisher {
 
   private Object payloadToObject(EventOutbox event) throws JsonProcessingException {
     return switch (event.getEventType()) {
-    case "MessageCreatedEvent" -> mapper.readValue(event.getPayload(), MessageCreatedEvent.class);
-    default -> throw new IllegalArgumentException(
-        "Not supported event type: " + event.getEventType());
+      case "MessageCreatedEvent" -> mapper.readValue(event.getPayload(), MessageCreatedEvent.class);
+      default ->
+          throw new IllegalArgumentException("Not supported event type: " + event.getEventType());
     };
   }
 }

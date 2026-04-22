@@ -39,11 +39,12 @@ public class MessageController {
   }
 
   @PostMapping(consumes = "application/json")
-  public ResponseEntity<Void> create(@RequestBody CreateMessageRequestDto request,
-      UriComponentsBuilder builder) throws JsonProcessingException {
+  public ResponseEntity<Void> create(
+      @RequestBody CreateMessageRequestDto request, UriComponentsBuilder builder)
+      throws JsonProcessingException {
     MessageDto messageDto = messageService.send(request);
-    UriComponents uriComponents = builder.path("/messages/{messageId}")
-        .buildAndExpand(messageDto.getId());
+    UriComponents uriComponents =
+        builder.path("/messages/{messageId}").buildAndExpand(messageDto.getId());
     return ResponseEntity.created(uriComponents.toUri()).build();
   }
 }

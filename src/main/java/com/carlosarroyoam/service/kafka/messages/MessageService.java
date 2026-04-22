@@ -29,7 +29,9 @@ public class MessageService {
   private final EventOutboxRepository outboxRepository;
   private final ObjectMapper mapper;
 
-  public MessageService(MessageRepository messageRepository, EventOutboxRepository outboxRepository,
+  public MessageService(
+      MessageRepository messageRepository,
+      EventOutboxRepository outboxRepository,
       ObjectMapper mapper) {
     this.messageRepository = messageRepository;
     this.outboxRepository = outboxRepository;
@@ -43,8 +45,11 @@ public class MessageService {
   }
 
   public MessageDto findById(Long messageId) {
-    Message messageById = messageRepository.findById(messageId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+    Message messageById =
+        messageRepository
+            .findById(messageId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
     return MessageDtoMapper.INSTANCE.toDto(messageById);
   }
@@ -57,10 +62,8 @@ public class MessageService {
     message.setUpdatedAt(now);
     messageRepository.save(message);
 
-    MessageCreatedEvent messageSentEvent = MessageCreatedEvent.builder()
-        .id(message.getId())
-        .content(message.getContent())
-        .build();
+    MessageCreatedEvent messageSentEvent =
+        MessageCreatedEvent.builder().id(message.getId()).content(message.getContent()).build();
 
     EventOutbox eventOutbox = new EventOutbox();
     eventOutbox.setAggregateType(Message.class.getSimpleName());

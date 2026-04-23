@@ -4,13 +4,15 @@ import com.carlosarroyoam.service.kafka.messages.entity.Message;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class MessageDto {
   private Long id;

@@ -25,7 +25,7 @@ public class Message {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "content", length = 254, nullable = false)
+  @Column(name = "content", length = 1024, nullable = false)
   private String content;
 
   @Column(name = "created_at", nullable = false)

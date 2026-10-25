@@ -1,5 +1,6 @@
 package com.carlosarroyoam.service.kafka.core.config;
 
+import com.carlosarroyoam.service.kafka.core.property.MessagesCreatedTopicProps;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.context.annotation.Bean;

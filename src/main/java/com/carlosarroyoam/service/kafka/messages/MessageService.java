@@ -1,6 +1,6 @@
 package com.carlosarroyoam.service.kafka.messages;
 
-import com.carlosarroyoam.service.kafka.core.property.MessagesCreatedTopicProps;
+import com.carlosarroyoam.service.kafka.core.property.MessageCreatedTopicProps;
 import com.carlosarroyoam.service.kafka.messages.dto.CreateMessageRequestDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto;
 import com.carlosarroyoam.service.kafka.messages.dto.MessageDto.MessageDtoMapper;
@@ -27,17 +27,17 @@ public class MessageService {
   private static final Logger log = LoggerFactory.getLogger(MessageService.class);
   private final MessageRepository messageRepository;
   private final EventOutboxRepository outboxRepository;
-  private final MessagesCreatedTopicProps messagesCreatedTopicProps;
+  private final MessageCreatedTopicProps messageCreatedTopicProps;
   private final ObjectMapper mapper;
 
   public MessageService(
       MessageRepository messageRepository,
       EventOutboxRepository outboxRepository,
-      MessagesCreatedTopicProps messagesCreatedTopicProps,
+      MessageCreatedTopicProps messageCreatedTopicProps,
       ObjectMapper mapper) {
     this.messageRepository = messageRepository;
     this.outboxRepository = outboxRepository;
-    this.messagesCreatedTopicProps = messagesCreatedTopicProps;
+    this.messageCreatedTopicProps = messageCreatedTopicProps;
     this.mapper = mapper;
   }
 
@@ -73,7 +73,7 @@ public class MessageService {
     eventOutbox.setAggregateId(message.getId().toString());
     eventOutbox.setEventType(MessageCreatedEvent.class.getSimpleName());
     eventOutbox.setPayload(mapper.writeValueAsString(messageSentEvent));
-    eventOutbox.setTopic(messagesCreatedTopicProps.getName());
+    eventOutbox.setTopic(messageCreatedTopicProps.getName());
     eventOutbox.setCreatedAt(now);
     outboxRepository.save(eventOutbox);
 

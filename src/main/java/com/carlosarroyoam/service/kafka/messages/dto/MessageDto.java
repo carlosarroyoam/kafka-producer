@@ -28,7 +28,7 @@ public class MessageDto {
 
     MessageDto toDto(Message entity);
 
-    List<MessageDto> toDtos(List<Message> entities);
+    List<MessageDto> toDtoList(List<Message> entities);
 
     Message createRequestToEntity(CreateMessageRequestDto requestDto);
   }

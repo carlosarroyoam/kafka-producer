@@ -44,7 +44,7 @@ public class MessageService {
   public List<MessageDto> findAll(Integer page, Integer size) {
     Pageable pageable = PageRequest.of(page, size);
     Page<Message> messages = messageRepository.findAll(pageable);
-    return MessageDtoMapper.INSTANCE.toDtos(messages.getContent());
+    return MessageDtoMapper.INSTANCE.toDtoList(messages.getContent());
   }
 
   public MessageDto findById(Long messageId) {
